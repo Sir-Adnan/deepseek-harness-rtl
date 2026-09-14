@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "DSH RTL — راست‌چین برای DeepSeek Harness",
+  "short_name": "DSH RTL",
+  "version": "1.0.0",
+  "description": "رابط وب DeepSeek Harness را راست‌به‌چپ می‌کند و فونت وزیرمتن را اعمال می‌کند. کد، ترمینال، دیف و JSON چپ‌به‌راست می‌مانند.",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "action": {
+    "default_title": "DSH RTL",
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1/*",
+        "http://localhost/*",
+        "https://127.0.0.1/*",
+        "https://localhost/*"
+      ],
+      "js": ["src/content.js"],
+      "css": ["src/rtl.css"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["fonts/*.woff2"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
+}

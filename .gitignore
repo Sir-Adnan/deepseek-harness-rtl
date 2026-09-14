@@ -1,0 +1,16 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
+
+# tooling
+node_modules/
+*.log
+.env
+
+# local test artifacts
+test/**/dump-*.html
+chrome-profile*/
