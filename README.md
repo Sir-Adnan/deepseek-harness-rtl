@@ -6,11 +6,11 @@
 
 **فارسی** · [English](README.en.md)
 
-[![نسخه](https://img.shields.io/badge/نسخه-۱.۰.۰-4176e6?style=flat-square)](manifest.json)
-[![Chrome ۱۱۱+](https://img.shields.io/badge/Chrome-۱۱۱%2B-6d4df0?style=flat-square&logo=googlechrome&logoColor=white)](manifest.json)
+[![Version](https://img.shields.io/badge/version-1.0.0-4176e6?style=flat-square)](manifest.json)
+[![Chrome](https://img.shields.io/badge/Chrome-111%2B-6d4df0?style=flat-square&logo=googlechrome&logoColor=white)](manifest.json)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-0f8a63?style=flat-square)](manifest.json)
-[![تست‌ها](https://img.shields.io/badge/تست‌ها-۱۳۶%20سنجه%20·%20همه%20پاس-22c55e?style=flat-square)](test/run-tests.ps1)
-[![مجوز MIT](https://img.shields.io/badge/مجوز-MIT-000000?style=flat-square)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-136%20assertions%20%C2%B7%20all%20passing-22c55e?style=flat-square)](test/run-tests.ps1)
+[![License](https://img.shields.io/badge/license-MIT-000000?style=flat-square)](LICENSE)
 
 </div>
 
