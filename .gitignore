@@ -14,3 +14,6 @@ node_modules/
 # local test artifacts
 test/**/dump-*.html
 chrome-profile*/
+
+# scratch space of docs/build-images.mjs
+docs/.tmp/
