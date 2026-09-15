@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <title>DSH RTL</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">ف</span>
+        <span class="brandText">
+          <b>DSH RTL</b>
+          <small>راست‌چین‌ساز DeepSeek Harness</small>
+        </span>
+      </div>
+      <label class="switch" title="روشن/خاموش کردن کل افزونه">
+        <input type="checkbox" id="enabled" />
+        <span class="track"><span class="thumb"></span></span>
+      </label>
+    </header>
+
+    <main>
+      <!-- وضعیت زنده + حالت نمایش -->
+      <section class="card hero">
+        <div class="heroTop">
+          <span class="pulse" id="statusPulse" data-tone="idle"></span>
+          <span class="heroState" id="statusBadge">…</span>
+          <code class="host" id="statusHost" dir="ltr"></code>
+        </div>
+        <p class="heroHint" id="statusDetail"></p>
+
+        <div class="seg" id="modeSeg" data-value="full">
+          <span class="segThumb"></span>
+          <label><input type="radio" name="mode" value="full" /><span>کامل</span></label>
+          <label><input type="radio" name="mode" value="chat" /><span>فقط چت</span></label>
+          <label><input type="radio" name="mode" value="off" /><span>خاموش</span></label>
+        </div>
+        <p class="segHint" id="modeHint"></p>
+
+        <button class="btn" id="applyNow">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+            <path
+              d="M8 2.5v8m0 0 3-3m-3 3-3-3M3 13h10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          اعمال فوری در این تب
+        </button>
+      </section>
+
+      <!-- دامنهٔ اثر روی این سایت -->
+      <section class="card">
+        <h2>دامنهٔ اثر روی این سایت</h2>
+        <div class="seg seg-sm" id="siteSeg" data-value="auto">
+          <span class="segThumb"></span>
+          <label><input type="radio" name="siteMode" value="auto" /><span>خودکار</span></label>
+          <label><input type="radio" name="siteMode" value="on" /><span>همیشه</span></label>
+          <label><input type="radio" name="siteMode" value="off" /><span>هرگز</span></label>
+        </div>
+      </section>
+
+      <!-- قلم -->
+      <section class="card">
+        <h2>قلم</h2>
+        <div class="preview" id="fontPreview">
+          <span class="previewText">سلام، این یک نمونهٔ متن فارسی است ۱۲۳۴۵۶۷۸۹</span>
+          <span class="previewMeta" id="previewMeta">وزیرمتن · وزن ۴۰۰ و ۷۰۰</span>
+        </div>
+
+        <label class="field">
+          <span>خانوادهٔ فونت</span>
+          <select id="font">
+            <option value="vazir">وزیرمتن</option>
+            <option value="fd">وزیرمتن با ارقام فارسی</option>
+            <option value="system">فونت سیستم</option>
+            <option value="none">بدون تغییر فونت</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>فاصلهٔ خطوط متن</span>
+          <select id="lineHeight">
+            <option value="0">پیش‌فرض هارنس</option>
+            <option value="1.6">۱٫۶</option>
+            <option value="1.8">۱٫۸</option>
+            <option value="2">۲٫۰</option>
+            <option value="2.2">۲٫۲</option>
+          </select>
+        </label>
+      </section>
+
+      <!-- رفتار -->
+      <section class="card">
+        <h2>رفتار</h2>
+        <ul class="toggles">
+          <li>
+            <span class="tText">
+              <b>جهت هوشمند پاراگراف</b>
+              <small>پاراگراف فارسی راست، پاراگراف انگلیسی چپ</small>
+            </span>
+            <label class="switch"
+              ><input type="checkbox" id="plaintext" /><span class="track"
+                ><span class="thumb"></span></span
+            ></label>
+          </li>
+          <li>
+            <span class="tText">
+              <b>کد و ترمینال چپ‌به‌راست بماند</b>
+              <small>بلوک کد، دیف، درخت JSON، مسیر فایل، فرمول ریاضی</small>
+            </span>
+            <label class="switch"
+              ><input type="checkbox" id="ltrIslands" /><span class="track"
+                ><span class="thumb"></span></span
+            ></label>
+          </li>
+          <li id="mirrorRow">
+            <span class="tText">
+              <b>آینه‌کردن آیکون‌های جهت‌دار</b>
+              <small>شورون دیسکلوژر، کرت تب‌ها، دستهٔ پنجره — فقط در حالت «کامل»</small>
+            </span>
+            <label class="switch"
+              ><input type="checkbox" id="mirrorIcons" /><span class="track"
+                ><span class="thumb"></span></span
+            ></label>
+          </li>
+          <li>
+            <span class="tText">
+              <b>تبدیل ارقام متن به فارسی</b>
+              <small>۱۲۳ به‌جای 123 — کد، لینک و نسخه دست‌نخورده</small>
+            </span>
+            <label class="switch"
+              ><input type="checkbox" id="persianDigits" /><span class="track"
+                ><span class="thumb"></span></span
+            ></label>
+          </li>
+          <li>
+            <span class="tText">
+              <b>دکمهٔ شناور در صفحه</b>
+              <small>کلیک: چرخهٔ کامل ← فقط چت ← خاموش</small>
+            </span>
+            <label class="switch"
+              ><input type="checkbox" id="floatingButton" /><span class="track"
+                ><span class="thumb"></span></span
+            ></label>
+          </li>
+        </ul>
+      </section>
+
+      <!-- پیشرفته -->
+      <details class="card">
+        <summary>تنظیمات پیشرفته</summary>
+
+        <label class="field col">
+          <span>انتخابگرهایی که باید چپ‌به‌راست بمانند</span>
+          <textarea
+            id="extraLtrSelectors"
+            rows="3"
+            spellcheck="false"
+            placeholder=".my-widget&#10;[data-x=&quot;y&quot;]"
+          ></textarea>
+        </label>
+
+        <label class="field col">
+          <span>CSS سفارشی (روی صفحه تزریق می‌شود)</span>
+          <textarea
+            id="customCss"
+            rows="5"
+            spellcheck="false"
+            placeholder="html[dir=&quot;rtl&quot;] .something { /* … */ }"
+          ></textarea>
+        </label>
+
+        <div class="inlineRow">
+          <span class="tText">
+            <b>فقط صفحه‌های DSH</b>
+            <small>در حالت «خودکار» تشخیص خودکار انجام شود</small>
+          </span>
+          <label class="switch"
+            ><input type="checkbox" id="detectOnly" /><span class="track"
+              ><span class="thumb"></span></span
+          ></label>
+        </div>
+
+        <button class="btn ghost danger" id="reset">بازنشانی به پیش‌فرض</button>
+      </details>
+    </main>
+
+    <footer class="foot">
+      <span id="saveState">آماده</span>
+      <span class="kbd">Alt + Shift + R</span>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DSH RTL harness</title>
+    <!-- شیت افزونه، مثل content script در document_start -->
+    <link rel="stylesheet" href="../src/rtl.css" />
+    <!-- شبیه‌سازی قواعد خود اپ که در زمان اجرا به <head> اضافه می‌شوند (بعد از ما) -->
+    <style id="fake-app-css">
+      :root {
+        --dsw-font-family: -apple-system, "Segoe UI", sans-serif;
+        --ds-font-family-code: "SF Mono", Consolas, monospace;
+      }
+      body { margin: 0; font: 400 14px/24px var(--dsw-font-family); }
+      ._markdown_kcgor_5 { font: 400 14px/24px var(--dsw-font-family); }
+      ._markdown_kcgor_5 :where(ul, ol) { margin: 16px 0; padding-left: 18px; }
+      ._markdown_kcgor_5 :where(ul, ol) ol { list-style-position: inside; padding-left: 0; }
+      ._markdown_kcgor_5 blockquote {
+        border-left: 2px solid #999; margin: 16px 0 0; padding-left: 14px;
+      }
+      ._markdown_kcgor_5 pre { margin: 16px 0; font-family: var(--ds-font-family-code); }
+      ._markdown_kcgor_5 input[type="checkbox"] { margin: 0 8px 0 0; }
+      ._bubble_Sixlwa_1 { white-space: pre-wrap; border-radius: 22px; padding: 10px 16px; }
+      ._menuItem_17p4l_460 { text-align: left; }
+      ._expand_12o37_79 { text-align: left; }
+      ._leading_luwio_29 { margin-right: 6px; }
+      ._refIcon_z12h9_36 { margin-right: 4px; }
+      ._floatResize_17p4l_696 { position: absolute; right: 0; bottom: 0; }
+      ._floatResize_17p4l_696:after {
+        content: ""; position: absolute; right: 4px; bottom: 4px;
+        border-right: 1.5px solid #333; border-bottom: 1.5px solid #333;
+        border-bottom-right-radius: 16px;
+      }
+      ._gutter_onbk6_82 { padding-right: 14px; text-align: right; }
+      ._tableScroll_kcgor_190 th { text-align: start; padding: 10px 16px; }
+      ._tableScroll_kcgor_190 th:first-child { padding-left: 0; }
+      ._tableScroll_kcgor_190 td:last-child { padding-right: 0; }
+      ._search_qSYn7G_1 > svg { position: absolute; left: 12px; }
+      ._search_qSYn7G_1 input { padding: 0 34px 0 36px; }
+      ._uV2eYG_placeholder { position: absolute; inset: 4px 8px auto 14px; }
+      ._list_1nxmc_8 { position: absolute; top: 0; left: 0; }
+      ._regionArea_hHd_1 {
+        margin-left: -4px; padding-left: 4px;
+        margin-right: calc(-1 * var(--dsh-sidebar-inline-padding, 12px));
+      }
+      ._chevron_o3BgMG_1 { display: grid; }
+      ._dockHint_17p4l_500 { position: absolute; }
+      ._tabClose_17p4l_314 { position: absolute; top: 4px; right: 4px; }
+      [data-dockkit-dock-zone] { position: absolute; }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- ===== محتوای گفتگو ===== -->
+      <div data-conversation-scroll id="chatScroll">
+        <div class="_userRow_Sixlwa_1">
+          <div class="_userStack_Sixlwa_1">
+            <div class="_bubble_Sixlwa_1" id="bubble">سلام، این پیام کاربر است</div>
+          </div>
+        </div>
+        <div class="_markdown_kcgor_5" id="mdRoot">
+          <p id="fa-p">سلام دنیا</p>
+          <p id="en-p">Hello world</p>
+          <ul id="md-ul"><li>یک</li></ul>
+          <blockquote id="md-bq">نقل قول</blockquote>
+          <pre id="md-pre"><code>const a = 1;</code></pre>
+          <table class="_tableScroll_kcgor_190">
+            <tr><th id="th1">ستون</th><th>ب</th></tr>
+          </table>
+          <input type="checkbox" id="md-check" />
+        </div>
+      </div>
+
+      <!-- ===== پوستهٔ اپ ===== -->
+      <button id="btn" class="_menuItem_17p4l_460">آیتم منو</button>
+      <button id="expandBtn" class="_expand_12o37_79">باز کن</button>
+      <div data-disclosure-row id="discRow">
+        <div class="_leading_luwio_29" id="chev"><svg width="14" height="14"></svg></div>
+        <span class="_title_luwio_79">ردیف بازشو</span>
+      </div>
+      <div data-tool="bash" data-expandable id="toolRow">
+        <div class="_leading_o3BgMG_1" id="toolLead"><svg width="16" height="16"></svg></div>
+        <span class="_title_o3BgMG_9">bash</span>
+      </div>
+      <div data-terminal id="term"><span>ls -la</span></div>
+      <div data-diff id="diff">+ added</div>
+      <div data-search id="searchBlock"><span class="_line_1h7p4_52">x</span></div>
+      <div class="_gutter_onbk6_82" id="gutter">12</div>
+      <div class="_floatResize_17p4l_696" id="grip"></div>
+      <div data-dockkit-dock-zone="left" id="zoneLeft"></div>
+      <div data-dockkit-dock-zone="right" id="zoneRight"></div>
+      <div class="_tabClose_17p4l_314" id="tabClose"></div>
+      <div class="_list_1nxmc_8" id="menuList"></div>
+      <div class="_regionArea_hHd_1" id="regionArea"></div>
+      <div class="_chevron_o3BgMG_1" id="chevronWrap"><svg width="12" height="12"></svg></div>
+      <div id="editorWrap"><div data-lexical-editor="true" id="editor"><p>متن پیام</p></div></div>
+      <div data-composer-placeholder class="_uV2eYG_placeholder" id="ph">پیام بنویسید</div>
+      <div class="_search_qSYn7G_1" id="search"><svg width="12" height="12"></svg><input id="searchInput" /></div>
+      <div class="_markdown_kcgor_5" id="md2">
+        <p id="code-p">مقدار <code>--flag</code> را بده</p>
+        <p id="katex-p">فرمول <span class="katex">x^2</span> است</p>
+      </div>
+    </div>
+
+    <pre id="out">running…</pre>
+
+    <script>
+      const results = [];
+      const R = (name, actual, expected) => {
+        const ok = String(actual) === String(expected);
+        results.push(`${ok ? "PASS" : "FAIL"} | ${name} | got=${actual} | want=${expected}`);
+      };
+      const cs = (el) => getComputedStyle(el);
+      const $ = (id) => document.getElementById(id);
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      function setMode(mode) {
+        const html = document.documentElement;
+        if (mode === "full") {
+          html.setAttribute("data-dsh-rtl", "full");
+          html.setAttribute("dir", "rtl");
+          html.setAttribute("data-dsh-rtl-mirror", "on");
+        } else if (mode === "chat") {
+          html.setAttribute("data-dsh-rtl", "chat");
+          html.removeAttribute("dir");
+          html.removeAttribute("data-dsh-rtl-mirror");
+        } else {
+          html.removeAttribute("data-dsh-rtl");
+          html.removeAttribute("dir");
+          html.removeAttribute("data-dsh-rtl-mirror");
+          html.removeAttribute("data-dsh-rtl-chat");
+        }
+        if (mode !== "off") {
+          html.setAttribute("data-dsh-rtl-chat", "on");
+          html.setAttribute("data-dsh-rtl-font", "vazir");
+          html.setAttribute("data-dsh-rtl-plaintext", "on");
+          html.setAttribute("data-dsh-rtl-ltr", "on");
+        }
+      }
+
+      async function run() {
+        const html = document.documentElement;
+        setMode("full");
+
+        try { await document.fonts.ready; } catch (_) {}
+        await sleep(400);
+
+        /* ============ حالت کامل ============ */
+
+        R("font token overridden over later :root rule",
+          cs(html).getPropertyValue("--dsw-font-family").includes("Vazirmatn DSH"), true);
+        R("code font keeps mono + vazir fallback",
+          cs(html).getPropertyValue("--ds-font-family-code").includes('"Vazirmatn DSH"'), true);
+        R("webfont actually loads",
+          [...document.fonts].some((f) => f.family.includes("Vazirmatn") && f.status === "loaded"), true);
+
+        R("body direction", cs(document.body).direction, "rtl");
+
+        R("markdown pre stays ltr", cs($("md-pre")).direction, "ltr");
+        R("inline code stays ltr", cs(document.querySelector("#code-p code")).direction, "ltr");
+        R("terminal stays ltr", cs($("term")).direction, "ltr");
+        R("diff stays ltr", cs($("diff")).direction, "ltr");
+        R("search block stays ltr", cs($("searchBlock")).direction, "ltr");
+        R("read gutter stays ltr", cs($("gutter")).direction, "ltr");
+        R("read gutter keeps its own text-align:right", cs($("gutter")).textAlign, "right");
+        R("katex stays ltr", cs(document.querySelector("#katex-p .katex")).direction, "ltr");
+
+        R("chat bubble is rtl", cs($("bubble")).direction, "rtl");
+        R("chat markdown is rtl", cs($("mdRoot")).direction, "rtl");
+
+        R("ul padding-left removed", cs($("md-ul")).paddingLeft, "0px");
+        R("ul padding-right = 18px", cs($("md-ul")).paddingRight, "18px");
+        R("blockquote border-left removed", cs($("md-bq")).borderLeftWidth, "0px");
+        R("blockquote border-right = 2px", cs($("md-bq")).borderRightWidth, "2px");
+        R("blockquote padding-right = 14px", cs($("md-bq")).paddingRight, "14px");
+        R("task checkbox margin flipped (left 8px)", cs($("md-check")).marginLeft, "8px");
+        R("task checkbox margin-right 0", cs($("md-check")).marginRight, "0px");
+        R("table first cell padding-right 0", cs($("th1")).paddingRight, "0px");
+        R("table first cell padding-left 16px", cs($("th1")).paddingLeft, "16px");
+
+        R("menu item text-align no longer left", cs($("btn")).textAlign, "start");
+        R("expand button text-align no longer left", cs($("expandBtn")).textAlign, "start");
+
+        R("persian p is plaintext", cs($("fa-p")).unicodeBidi, "plaintext");
+        R("english p is plaintext too", cs($("en-p")).unicodeBidi, "plaintext");
+
+        R("chevron wrapper mirrored", cs($("chev")).scale, "-1 1");
+        R("chevron module wrapper mirrored", cs($("chevronWrap")).scale, "-1 1");
+        R("svg rotate mechanics untouched", cs(document.querySelector("#chevronWrap svg")).scale, "none");
+        R("tool-row leading icon NOT mirrored", cs($("toolLead")).scale, "none");
+
+        R("float resize moved to left", cs($("grip")).left, "0px");
+        R("float resize no longer anchored right", cs($("grip")).right !== "0px", true);
+        R("float resize cursor flipped", cs($("grip")).cursor, "nesw-resize");
+        R("dock zone left → right:0", cs($("zoneLeft")).right, "0px");
+        R("dock zone no longer anchored left", cs($("zoneLeft")).left !== "0px", true);
+        R("dock zone right → left:0", cs($("zoneRight")).left, "0px");
+        R("tab close moved to left", cs($("tabClose")).left, "4px");
+        R("menu list anchored to right", cs($("menuList")).right, "0px");
+        R("menu list no longer anchored left", cs($("menuList")).left !== "0px", true);
+        R("sidebar regionArea margin flipped", cs($("regionArea")).marginLeft, "0px");
+        R("search icon moved to right", cs(document.querySelector("#search > svg")).right, "12px");
+        R("search input padding flipped", cs($("searchInput")).paddingRight, "36px");
+
+        R("lexical editor direction", cs($("editor")).direction, "rtl");
+        R("lexical editor plaintext", cs($("editor")).unicodeBidi, "plaintext");
+        R("placeholder right inset flipped", cs($("ph")).right, "14px");
+        R("placeholder left inset flipped", cs($("ph")).left, "8px");
+
+        /* ============ حالت فقط چت ============ */
+        setMode("chat");
+        await sleep(80);
+
+        R("[chat] html has no dir (shell untouched)", html.getAttribute("dir"), null);
+        R("[chat] body stays ltr", cs(document.body).direction, "ltr");
+        R("[chat] bubble is rtl", cs($("bubble")).direction, "rtl");
+        R("[chat] bubble is plaintext", cs($("bubble")).unicodeBidi, "plaintext");
+        R("[chat] chat markdown is rtl", cs($("mdRoot")).direction, "rtl");
+        R("[chat] markdown paragraphs plaintext", cs($("fa-p")).unicodeBidi, "plaintext");
+        R("[chat] code block still ltr", cs($("md-pre")).direction, "ltr");
+        R("[chat] terminal still ltr", cs($("term")).direction, "ltr");
+        R("[chat] ul mirroring still active", cs($("md-ul")).paddingRight, "18px");
+        R("[chat] blockquote border-right = 2px", cs($("md-bq")).borderRightWidth, "2px");
+        R("[chat] composer stays ltr (default harness)", cs($("editor")).direction, "ltr");
+        R("[chat] menu button keeps app text-align:left", cs($("btn")).textAlign, "left");
+        R("[chat] dock zone stays on the left", cs($("zoneLeft")).left, "0px");
+        R("[chat] chevrons NOT mirrored", cs($("chev")).scale, "none");
+        R("[chat] float resize stays bottom-right", cs($("grip")).right, "0px");
+        R("[chat] sidebar regionArea untouched", cs($("regionArea")).marginLeft, "-4px");
+        R("[chat] search icon untouched", cs(document.querySelector("#search > svg")).left, "12px");
+
+        /* ============ خاموش ============ */
+        setMode("off");
+        await sleep(80);
+
+        R("disabled: body back to ltr", cs(document.body).direction, "ltr");
+        R("disabled: bubble back to ltr", cs($("bubble")).direction, "ltr");
+        R("disabled: markdown back to ltr", cs($("mdRoot")).direction, "ltr");
+        R("disabled: ul padding-left back to 18px", cs($("md-ul")).paddingLeft, "18px");
+        R("disabled: chevron scale reset", cs($("chev")).scale, "none");
+        R("disabled: float resize back to right", cs($("grip")).right, "0px");
+        R("disabled: font token released",
+          cs(html).getPropertyValue("--dsw-font-family").includes("Vazirmatn DSH"), false);
+
+        const sheet = [...document.styleSheets].find((s) => (s.href || "").includes("rtl.css"));
+        R("rtl.css parsed rules > 30", sheet ? sheet.cssRules.length > 30 : false, true);
+
+        const failed = results.filter((r) => r.startsWith("FAIL"));
+        document.getElementById("out").textContent =
+          `RESULT ${results.length - failed.length}/${results.length}\n` +
+          results.join("\n") +
+          `\nSUMMARY ${failed.length === 0 ? "ALL-PASS" : "HAS-FAILURES"}`;
+      }
+
+      run();
+    </script>
+  </body>
+</html>

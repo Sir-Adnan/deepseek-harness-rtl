@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <title>popup probe</title>
+    <link rel="stylesheet" href="../src/popup.css" />
+  </head>
+  <body>
+    <div id="mount"></div>
+    <pre id="out">…</pre>
+    <script>
+      (async function () {
+        const lines = [];
+        const R = (n, a, e) =>
+          lines.push(`${String(a) === String(e) ? "PASS" : "FAIL"} | ${n} | got=${a} | want=${e}`);
+
+        const html = await (await fetch("../src/popup.html")).text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        doc.querySelectorAll("script").forEach((s) => s.remove());
+        document.getElementById("mount").replaceWith(doc.body);
+
+        await new Promise((r) => requestAnimationFrame(r));
+
+        const de = document.documentElement;
+        const cs = getComputedStyle(document.body);
+        const card = document.querySelector(".card");
+        const strong = document.querySelector(".tText b");
+
+        R("devicePixelRatio", window.devicePixelRatio, 1);
+        R("body width is fixed 384", Math.round(document.body.getBoundingClientRect().width), 384);
+        R("no horizontal overflow", de.scrollWidth <= de.clientWidth, true);
+        R("body direction rtl", cs.direction, "rtl");
+        R("card fits inside body", card.getBoundingClientRect().width <= 384, true);
+        R(
+          "card starts inside viewport (left >= 0)",
+          card.getBoundingClientRect().left >= -0.5,
+          true
+        );
+        R("toggle label is not clipped", strong.getBoundingClientRect().width > 60, true);
+        R(
+          "footer kbd is inside viewport",
+          document.querySelector(".kbd").getBoundingClientRect().right <= 385,
+          true
+        );
+        R("popup font family applied", cs.fontFamily.includes("Vazirmatn DSH"), true);
+        R("status state renders text", document.querySelector(".heroState").textContent.trim().length > 0, true);
+        R("switch track exists", !!document.querySelector(".track .thumb"), true);
+        R("mode segmented control has 3 options", document.querySelectorAll("#modeSeg label").length, 3);
+        R("site segmented control has 3 options", document.querySelectorAll("#siteSeg label").length, 3);
+        R("toggles count", document.querySelectorAll(".toggles li").length, 5);
+        R(
+          "textarea stays ltr (code-ish)",
+          getComputedStyle(document.getElementById("customCss")).direction,
+          "ltr"
+        );
+        R("details starts closed", document.querySelector("details").open, false);
+        R("font preview block exists", !!document.querySelector(".previewText"), true);
+        R(
+          "font preview fits",
+          document.querySelector(".previewText").getBoundingClientRect().width <= 360,
+          true
+        );
+        R("host chip is ltr", getComputedStyle(document.querySelector(".host")).direction, "ltr");
+        R("brand mark rendered", document.querySelector(".mark").textContent.trim(), "ف");
+        R("apply button present", !!document.getElementById("applyNow"), true);
+
+        document.getElementById("out").textContent =
+          lines.join("\n") +
+          `\nSUMMARY ${lines.some((l) => l.startsWith("FAIL")) ? "HAS-FAILURES" : "ALL-PASS"}`;
+      })();
+    </script>
+  </body>
+</html>

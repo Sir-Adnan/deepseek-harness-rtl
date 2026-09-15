@@ -1,0 +1,444 @@
+/* ============================================================================
+ * DSH RTL — راست‌چین‌ساز رابط وب DeepSeek Harness
+ * ----------------------------------------------------------------------------
+ * این شیت همیشه در صفحه تزریق می‌شود، اما دو «دروازه» دارد و تا وقتی
+ * content script آن‌ها را روی <html> نگذارد هیچ قاعده‌ای اثر ندارد:
+ *
+ *   SHELL → html[data-dsh-rtl="full"][dir="rtl"]
+ *           همه‌چیز می‌چرخد: سایدبار، هدر، داک، تب‌ها، منوها، کمپوزر…
+ *
+ *   CHAT  → html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+ *           فقط «محتوای گفتگو» (حباب پیام کاربر، مارک‌داون پاسخ، متن استدلال)
+ *           راست‌چین می‌شود. این دروازه در هر دو حالت فعال است، پس کد و ترمینال
+ *           در هر دو حالت چپ‌به‌راست می‌مانند.
+ *
+ * حالت‌ها:
+ *   کامل   → data-dsh-rtl="full" + dir="rtl"  → SHELL + CHAT
+ *   فقط چت → data-dsh-rtl="chat"              → CHAT (پوسته دست‌نخورده = دیفالت هارنس)
+ *   خاموش  → هیچ اتریبیوتی                       → هیچ
+ *
+ * specificity دروازه‌ها (0,2,1) است؛ یک پله بالاتر از قواعد اپ ((0,1,1) و
+ * (0,2,0))، پس بدون !important برنده می‌شوند. جای !important فقط جایی است که
+ * اپ استایل را در زمان اجرا با مقدار بالاتر تزریق می‌کند (توکن‌های فونت).
+ * ========================================================================= */
+
+/* ---------------------------------------------------------------------------
+ * ۱) فونت وزیرمتن — در هر دو حالت فعال
+ * ------------------------------------------------------------------------ */
+
+/* نسخهٔ متغیر (وزن ۱۰۰ تا ۹۰۰) */
+@font-face {
+  font-family: "Vazirmatn DSH";
+  src: url("../fonts/Vazirmatn-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* نسخهٔ ارقام فارسی */
+@font-face {
+  font-family: "Vazirmatn FD DSH";
+  src: url("../fonts/Vazirmatn-FD-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD DSH";
+  src: url("../fonts/Vazirmatn-FD-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD DSH";
+  src: url("../fonts/Vazirmatn-FD-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn FD DSH";
+  src: url("../fonts/Vazirmatn-FD-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* توکن‌های فونت اپ (پلاگین dsh-client-ui-theme آن‌ها را روی :root می‌گذارد و
+ * همهٔ کامپوننت‌ها ارث می‌برند). !important چون آن پلاگین استایل را در زمان
+ * اجرا به <head> اضافه می‌کند. */
+html[data-dsh-rtl] {
+  --dsw-font-family: "Vazirmatn DSH", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  /* مونو دست‌نخورده می‌ماند؛ وزیرمتن فقط fallback آخر است تا کامنت/توضیح
+   * فارسی داخل کد هم درست دیده شود. */
+  --ds-font-family-code: "SF Mono", "JetBrains Mono", "Fira Code", Consolas,
+    "Liberation Mono", Menlo, Courier, "PingFang SC", "Microsoft YaHei",
+    "Vazirmatn DSH", monospace !important;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-font="fd"] {
+  --dsw-font-family: "Vazirmatn FD DSH", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-font="system"] {
+  --dsw-font-family: "Segoe UI", Tahoma, "Iranian Sans", "B Nazanin",
+    -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * ۲) CHAT — جهت محتوای گفتگو (در هر دو حالت)
+ * ------------------------------------------------------------------------ */
+
+/* حباب پیام کاربر، مارک‌داون پاسخ دستیار، متن استدلال و خلاصهٔ فشرده‌سازی */
+html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+  :where(
+    [class*="_bubble"],
+    [class*="_markdown_"],
+    [class*="_thinkBody"],
+    [class*="_compactionBody"],
+    [class*="_userStack"],
+    [class*="_answer_"]
+  ) {
+  direction: rtl;
+  text-align: start;
+}
+
+/* جهت هوشمند: هر پاراگراف بر اساس اولین حرف قوی‌اش. پاراگراف فارسی راست،
+ * پاراگراف انگلیسی چپ. (اختیاری — پیش‌فرض روشن)
+ * نکته: unicode-bidi ارثی نیست، پس علاوه بر ظرف، فرزندان بلوکی را هم
+ * جداگانه علامت می‌زنیم وگرنه پاراگراف‌های تودرتو جهت هوشمند نمی‌گیرند. */
+html[data-dsh-rtl][data-dsh-rtl-chat="on"][data-dsh-rtl-plaintext="on"]
+  :where(
+    [class*="_bubble"],
+    [class*="_markdown_"],
+    [class*="_thinkBody"],
+    [class*="_compactionBody"]
+  ) {
+  unicode-bidi: plaintext;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"][data-dsh-rtl-plaintext="on"]
+  :where([class*="_markdown_"], [class*="_thinkBody"], [class*="_compactionBody"])
+  :where(p, li, blockquote, dd, dt, td, th, h1, h2, h3, h4, h5, h6) {
+  unicode-bidi: plaintext;
+}
+
+/* فاصلهٔ خطوط متن فارسی (اختیاری) */
+html[data-dsh-rtl][data-dsh-rtl-chat="on"][data-dsh-rtl-lh="on"]
+  :where([class*="_bubble"], [class*="_markdown_"])
+  :where(p, li, blockquote, dd, td, th) {
+  line-height: var(--dsh-rtl-line-height);
+}
+
+/* ---------------------------------------------------------------------------
+ * ۳) CHAT — تعمیر مارک‌داون
+ * اپ در چند جا ویژگی فیزیکی گذاشته (padding-left لیست، border-left نقل‌قول…)
+ * که با direction: rtl باید آینه شود.
+ * ------------------------------------------------------------------------ */
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+  :where([class*="_markdown_"])
+  :where(ul, ol) {
+  padding-inline-start: 18px;
+  padding-left: 0;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+  :where([class*="_markdown_"])
+  :where(ul, ol)
+  ol {
+  padding-inline-start: 0;
+  padding-left: 0;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"] :where([class*="_markdown_"]) blockquote {
+  border-inline-start: 2px solid var(--dsw-alias-label-caption, currentColor);
+  border-left: 0;
+  padding-inline-start: 14px;
+  padding-left: 0;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+  :where([class*="_markdown_"])
+  input[type="checkbox"] {
+  margin: 0 0 0 8px;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+  :where([class*="_tableScroll_"])
+  :where(th, td):first-child {
+  padding-inline-start: 0;
+  padding-inline-end: 16px;
+}
+html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+  :where([class*="_tableScroll_"])
+  :where(th, td):last-child {
+  padding-inline-end: 0;
+  padding-inline-start: 16px;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"] :where([class*="_sources_"]) {
+  padding-inline-start: 2.5em;
+  padding-left: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * ۴) SHELL — جهت پایهٔ رابط
+ * ------------------------------------------------------------------------ */
+
+html[data-dsh-rtl="full"][dir="rtl"],
+html[data-dsh-rtl="full"][dir="rtl"] body,
+html[data-dsh-rtl="full"][dir="rtl"] #root {
+  direction: rtl;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where([class*="_summary"], [class*="_title"], [class*="_label"]) {
+  text-align: start;
+}
+
+/* ---------------------------------------------------------------------------
+ * ۵) SHELL — هم‌ترازی کنترل‌ها
+ * :where() عمداً استفاده شده تا specificity پایین بماند و «جزیره‌های
+ * چپ‌به‌راست» بخش ۹ بتوانند بعداً آن را خنثی کنند.
+ * ------------------------------------------------------------------------ */
+
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where(
+    button,
+    summary,
+    label,
+    legend,
+    [role="button"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="menuitemcheckbox"],
+    [role="tab"],
+    [role="option"],
+    [role="switch"],
+    th,
+    td,
+    dd,
+    dt
+  ) {
+  text-align: start;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_leading_"]) {
+  margin-inline-end: 6px;
+  margin-right: 0;
+}
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_refIcon_"], [class*="_linkIcon_"]) {
+  margin-inline-end: 5px;
+  margin-right: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * ۶) SHELL — کمپوزر (ویرایشگر Lexical)
+ * جهت با CSS اعمال می‌شود (نه با dir) چون Lexical خودش dir را مدیریت و
+ * ممکن است بازنویسی کند.
+ * ------------------------------------------------------------------------ */
+
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where([data-composer-card], [data-composer-input], [data-lexical-editor]) {
+  direction: rtl;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"][data-dsh-rtl-plaintext="on"] [data-lexical-editor] {
+  unicode-bidi: plaintext;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where([data-composer-placeholder], [class*="_placeholder"]) {
+  inset: 4px 14px auto 8px;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------------------
+ * ۷) SHELL — آینه‌کردن آیکون‌های جهت‌دار (اختیاری)
+ * فقط «ظرف» آیکون آینه می‌شود، نه خود svg؛ اگر خود svg بچرخد
+ * (شورون بازشده = rotate(90deg)) آینه‌کردن آن نتیجه را خراب می‌کند.
+ * خصوصیت scale (نه transform) تا با rotate داخلی ترکیب شود.
+ * ------------------------------------------------------------------------ */
+
+html[data-dsh-rtl="full"][dir="rtl"][data-dsh-rtl-mirror="on"]
+  :where(div, span, button, a):where(
+    [class*="_chevron"],
+    [class*="_caret"],
+    [class*="_dockGlyph"],
+    [data-dockkit-caret]
+  ) {
+  scale: -1 1;
+}
+
+/* شورون ردیف‌های بازشو (DisclosureRow) داخل ظرفی با نام «leading» است.
+ * برای اینکه آیکون ابزارها (ترمینال/فایل/…) اشتباهی آینه نشود، فقط
+ * ردیف‌هایی گرفته می‌شوند که نشانهٔ بازشو دارند و ابزار نیستند. */
+html[data-dsh-rtl="full"][dir="rtl"][data-dsh-rtl-mirror="on"]
+  :where([data-disclosure-row], [data-expandable]:not([data-tool]))
+  :where([class*="_leading"]) {
+  scale: -1 1;
+}
+
+/* ---------------------------------------------------------------------------
+ * ۸) SHELL — تعمیر ویژگی‌های فیزیکی
+ * ------------------------------------------------------------------------ */
+
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_list_"]) {
+  left: auto;
+  right: 0;
+}
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_alignEnd_"]) {
+  right: auto;
+  left: 0;
+}
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_submenu_"]) {
+  left: auto;
+  right: calc(100% + 10px);
+}
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_submenu_"])::before {
+  left: auto;
+  right: -10px;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_search_"]) > svg {
+  left: auto;
+  right: 12px;
+}
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_search_"]) input {
+  padding: 0 36px 0 34px;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_regionArea_"]) {
+  margin-left: 0;
+  margin-right: calc(-1 * var(--dsh-sidebar-inline-padding, 12px));
+  padding-left: 0;
+  padding-right: 4px;
+}
+
+@keyframes dsh-rtl-rail-in {
+  from {
+    opacity: 0;
+    transform: translate(-49px);
+  }
+}
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where([class*="_railIn"])
+  :where(
+    [class*="_iconButton"],
+    [class*="_newSession"],
+    [class*="_panelList"],
+    [class*="_regionArea"]
+  ) {
+  animation-name: dsh-rtl-rail-in;
+}
+
+/* --- داک (dockkit)، تب‌ها، پنجرهٔ شناور --- */
+
+html[data-dsh-rtl="full"][dir="rtl"] [data-dockkit-dock-zone="left"] {
+  left: auto;
+  right: 0;
+}
+html[data-dsh-rtl="full"][dir="rtl"] [data-dockkit-dock-zone="right"] {
+  right: auto;
+  left: 0;
+}
+html[data-dsh-rtl="full"][dir="rtl"]
+  [data-dockkit-drop-zones="horizontal"]
+  [data-dockkit-dock-zone="left"] {
+  padding-right: 0;
+  padding-left: 4px;
+}
+html[data-dsh-rtl="full"][dir="rtl"]
+  [data-dockkit-drop-zones="horizontal"]
+  [data-dockkit-dock-zone="right"] {
+  padding-left: 0;
+  padding-right: 4px;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where([data-dockkit-tab-close], [class*="_tabClose_"]) {
+  right: auto;
+  left: 4px;
+}
+html[data-dsh-rtl="full"][dir="rtl"] :where([class*="_stripChrome_"]) {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where([data-dockkit-float-resize], [class*="_floatResize_"]) {
+  right: auto;
+  left: 0;
+  cursor: nesw-resize;
+}
+html[data-dsh-rtl="full"][dir="rtl"]
+  :where([data-dockkit-float-resize], [class*="_floatResize_"])::after {
+  right: auto;
+  left: 4px;
+  border-right: 0;
+  border-left: 1.5px solid var(--dsw-alias-label-caption, currentColor);
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 16px;
+}
+
+/* ---------------------------------------------------------------------------
+ * ۹) CHAT — جزیره‌های چپ‌به‌راست (در هر دو حالت)
+ * کد، ترمینال، دیف، نتیجهٔ Read/Search، درخت JSON، مسیر فایل، فرمول ریاضی.
+ * فقط direction تعیین می‌شود (نه text-align) تا هم‌ترازی‌های عمدی خود اپ
+ * مثل ستون شمارهٔ خط (text-align:right) دست‌نخورده بماند.
+ * ------------------------------------------------------------------------ */
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"][data-dsh-rtl-ltr="on"]
+  :where(
+    pre,
+    code,
+    kbd,
+    samp,
+    .katex,
+    .katex-display,
+    [data-code-block-content],
+    [data-code-block-banner],
+    [data-terminal],
+    [data-diff],
+    [data-read],
+    [data-search],
+    [data-line-numbers],
+    [data-json-root-row],
+    [data-json-expander],
+    [data-json-copy-button],
+    [data-composer-chip],
+    [data-composer-text-ref],
+    [data-ref-chip],
+    [data-dsh-rtl-ltr],
+    [class*="_path_"],
+    [class*="_pathText_"],
+    [class*="_pathName_"],
+    [class*="_pathDirectory_"],
+    [class*="_filePath_"],
+    [class*="_cwd_"],
+    [class*="_command_"],
+    [class*="_promptLine_"],
+    [class*="_fetchUrl_"],
+    [class*="_sourceLink_"],
+    [class*="_infostring_"],
+    [class*="_lineNumber_"],
+    [class*="_gutter_"],
+    [class*="_textDocument_"],
+    [class*="_snippet_"],
+    [class*="_plainRun_"],
+    [class*="_shiki_"]
+  ) {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+html[data-dsh-rtl][data-dsh-rtl-chat="on"]
+  :where([data-ref-chip], [data-composer-chip], [data-composer-text-ref]) {
+  unicode-bidi: isolate;
+}
